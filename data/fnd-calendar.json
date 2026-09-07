@@ -1,0 +1,803 @@
+{
+  "sourceFile": "TABLA POSICIONES COMMODITY 2026.xlsx",
+  "importedAt": "2026-09-07T15:17:16.102Z",
+  "entries": [
+    {
+      "product": "ZW",
+      "ticker": "ZWH26",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2026-02-27",
+      "nextTicker": "ZWK26"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWK26",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2026-04-30",
+      "nextTicker": "ZWN26"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWN26",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2026-06-30",
+      "nextTicker": "ZWU26"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWU26",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2026-08-31",
+      "nextTicker": "ZWZ26"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWZ26",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2026-11-30",
+      "nextTicker": "ZWH27"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCH26",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2026-02-27",
+      "nextTicker": "ZCK26"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCK26",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2026-04-30",
+      "nextTicker": "ZCN26"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCN26",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2026-06-30",
+      "nextTicker": "ZCU26"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCU26",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2026-08-31",
+      "nextTicker": "ZCZ26"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCZ26",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2026-11-30",
+      "nextTicker": "ZCH27"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSF26",
+      "month": "Enero",
+      "monthCode": "F",
+      "fnd": "2025-12-31",
+      "nextTicker": "ZSH26"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSH26",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2026-02-27",
+      "nextTicker": "ZSK26"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSK26",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2026-04-30",
+      "nextTicker": "ZSN26"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSN26",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2026-06-30",
+      "nextTicker": "ZSQ26"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSQ26",
+      "month": "Agosto",
+      "monthCode": "Q",
+      "fnd": "2026-07-31",
+      "nextTicker": "ZSU26"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSU26",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2026-08-31",
+      "nextTicker": "ZSX26"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSX26",
+      "month": "Noviembre",
+      "monthCode": "X",
+      "fnd": "2026-10-30",
+      "nextTicker": "ZSF27"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMF26",
+      "month": "Enero",
+      "monthCode": "F",
+      "fnd": "2025-12-31",
+      "nextTicker": "ZMH26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMH26",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2026-02-27",
+      "nextTicker": "ZMK26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMK26",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2026-04-30",
+      "nextTicker": "ZMN26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMN26",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2026-06-30",
+      "nextTicker": "ZMQ26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMQ26",
+      "month": "Agosto",
+      "monthCode": "Q",
+      "fnd": "2026-07-31",
+      "nextTicker": "ZMU26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMU26",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2026-08-31",
+      "nextTicker": "ZMV26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMV26",
+      "month": "Octubre",
+      "monthCode": "V",
+      "fnd": "2026-09-30",
+      "nextTicker": "ZMZ26"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMZ26",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2026-11-30",
+      "nextTicker": "ZMF27"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWH27",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2027-02-27",
+      "nextTicker": "ZWK28"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWK27",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2027-04-30",
+      "nextTicker": "ZWN28"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWN27",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2027-06-30",
+      "nextTicker": "ZWU28"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWU27",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2027-08-31",
+      "nextTicker": "ZWZ28"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWZ27",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2027-11-30",
+      "nextTicker": "ZWH28"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCH27",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2027-02-27",
+      "nextTicker": "ZCK28"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCK27",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2027-04-30",
+      "nextTicker": "ZCN28"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCN27",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2027-06-30",
+      "nextTicker": "ZCU28"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCU27",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2027-08-31",
+      "nextTicker": "ZCZ28"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCZ27",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2027-11-30",
+      "nextTicker": "ZCH28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSF27",
+      "month": "Enero",
+      "monthCode": "F",
+      "fnd": "2027-12-31",
+      "nextTicker": "ZSH28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSH27",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2027-02-27",
+      "nextTicker": "ZSK28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSK27",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2027-04-30",
+      "nextTicker": "ZSN28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSN27",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2027-06-30",
+      "nextTicker": "ZSQ28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSQ27",
+      "month": "Agosto",
+      "monthCode": "Q",
+      "fnd": "2027-07-31",
+      "nextTicker": "ZSU28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSU27",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2027-08-31",
+      "nextTicker": "ZSX28"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSX27",
+      "month": "Noviembre",
+      "monthCode": "X",
+      "fnd": "2027-10-30",
+      "nextTicker": "ZSF28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMF27",
+      "month": "Enero",
+      "monthCode": "F",
+      "fnd": "2027-12-31",
+      "nextTicker": "ZMH28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMH27",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2027-02-27",
+      "nextTicker": "ZMK28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMK27",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2027-04-30",
+      "nextTicker": "ZMN28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMN27",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2027-06-30",
+      "nextTicker": "ZMQ28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMQ27",
+      "month": "Agosto",
+      "monthCode": "Q",
+      "fnd": "2027-07-31",
+      "nextTicker": "ZMU28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMU27",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2027-08-31",
+      "nextTicker": "ZMV28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMV27",
+      "month": "Octubre",
+      "monthCode": "V",
+      "fnd": "2027-09-30",
+      "nextTicker": "ZMZ28"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMZ27",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2027-11-30",
+      "nextTicker": "ZMF28"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWH28",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2028-02-27",
+      "nextTicker": "ZWK29"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWK28",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2028-04-30",
+      "nextTicker": "ZWN29"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWN28",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2028-06-30",
+      "nextTicker": "ZWU29"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWU28",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2028-08-31",
+      "nextTicker": "ZWZ29"
+    },
+    {
+      "product": "ZW",
+      "ticker": "ZWZ28",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2028-11-30",
+      "nextTicker": "ZWH29"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCH28",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2028-02-27",
+      "nextTicker": "ZCK29"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCK28",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2028-04-30",
+      "nextTicker": "ZCN29"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCN28",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2028-06-30",
+      "nextTicker": "ZCU29"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCU28",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2028-08-31",
+      "nextTicker": "ZCZ29"
+    },
+    {
+      "product": "ZC",
+      "ticker": "ZCZ28",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2028-11-30",
+      "nextTicker": "ZCH29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSF28",
+      "month": "Enero",
+      "monthCode": "F",
+      "fnd": "2028-12-31",
+      "nextTicker": "ZSH29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSH28",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2028-02-27",
+      "nextTicker": "ZSK29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSK28",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2028-04-30",
+      "nextTicker": "ZSN29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSN28",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2028-06-30",
+      "nextTicker": "ZSQ29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSQ28",
+      "month": "Agosto",
+      "monthCode": "Q",
+      "fnd": "2028-07-31",
+      "nextTicker": "ZSU29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSU28",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2028-08-31",
+      "nextTicker": "ZSX29"
+    },
+    {
+      "product": "ZS",
+      "ticker": "ZSX28",
+      "month": "Noviembre",
+      "monthCode": "X",
+      "fnd": "2028-10-30",
+      "nextTicker": "ZSF29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMF28",
+      "month": "Enero",
+      "monthCode": "F",
+      "fnd": "2028-12-31",
+      "nextTicker": "ZMH29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMH28",
+      "month": "Marzo",
+      "monthCode": "H",
+      "fnd": "2028-02-27",
+      "nextTicker": "ZMK29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMK28",
+      "month": "Mayo",
+      "monthCode": "K",
+      "fnd": "2028-04-30",
+      "nextTicker": "ZMN29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMN28",
+      "month": "Julio",
+      "monthCode": "N",
+      "fnd": "2028-06-30",
+      "nextTicker": "ZMQ29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMQ28",
+      "month": "Agosto",
+      "monthCode": "Q",
+      "fnd": "2028-07-31",
+      "nextTicker": "ZMU29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMU28",
+      "month": "Septiembre",
+      "monthCode": "U",
+      "fnd": "2028-08-31",
+      "nextTicker": "ZMV29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMV28",
+      "month": "Octubre",
+      "monthCode": "V",
+      "fnd": "2028-09-30",
+      "nextTicker": "ZMZ29"
+    },
+    {
+      "product": "ZM",
+      "ticker": "ZMZ28",
+      "month": "Diciembre",
+      "monthCode": "Z",
+      "fnd": "2028-11-30",
+      "nextTicker": "ZMF29"
+    }
+  ],
+  "holidays": [
+    {
+      "date": "2025-01-01",
+      "name": "New Year's Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-01-20",
+      "name": "Martin Luther King Jr. Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-02-17",
+      "name": "Presidents' Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-04-18",
+      "name": "Good Friday",
+      "year": 2025
+    },
+    {
+      "date": "2025-05-26",
+      "name": "Memorial Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-06-19",
+      "name": "Juneteenth National Independence Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-07-04",
+      "name": "Independence Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-09-01",
+      "name": "Labor Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-11-27",
+      "name": "Thanksgiving Day",
+      "year": 2025
+    },
+    {
+      "date": "2025-12-25",
+      "name": "Christmas Day",
+      "year": 2025
+    },
+    {
+      "date": "2026-01-01",
+      "name": "New Year's Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-01-19",
+      "name": "Martin Luther King Jr. Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-02-16",
+      "name": "Presidents' Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Good Friday",
+      "year": 2026
+    },
+    {
+      "date": "2026-05-25",
+      "name": "Memorial Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-06-19",
+      "name": "Juneteenth National Independence Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-07-03",
+      "name": "Independence Day (Observed)",
+      "year": 2026
+    },
+    {
+      "date": "2026-09-07",
+      "name": "Labor Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-11-26",
+      "name": "Thanksgiving Day",
+      "year": 2026
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas Day",
+      "year": 2026
+    },
+    {
+      "date": "2027-01-01",
+      "name": "New Year's Day",
+      "year": 2027
+    },
+    {
+      "date": "2027-01-18",
+      "name": "Martin Luther King Jr. Day",
+      "year": 2027
+    },
+    {
+      "date": "2027-02-15",
+      "name": "Presidents' Day",
+      "year": 2027
+    },
+    {
+      "date": "2027-03-26",
+      "name": "Good Friday",
+      "year": 2027
+    },
+    {
+      "date": "2027-05-31",
+      "name": "Memorial Day",
+      "year": 2027
+    },
+    {
+      "date": "2027-06-18",
+      "name": "Juneteenth (Observed)",
+      "year": 2027
+    },
+    {
+      "date": "2027-07-05",
+      "name": "Independence Day (Observed)",
+      "year": 2027
+    },
+    {
+      "date": "2027-09-06",
+      "name": "Labor Day",
+      "year": 2027
+    },
+    {
+      "date": "2027-11-25",
+      "name": "Thanksgiving Day",
+      "year": 2027
+    },
+    {
+      "date": "2027-12-24",
+      "name": "Christmas Day (Observed)",
+      "year": 2027
+    },
+    {
+      "date": "2028-01-17",
+      "name": "Martin Luther King Jr. Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-02-21",
+      "name": "Presidents' Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-04-14",
+      "name": "Good Friday",
+      "year": 2028
+    },
+    {
+      "date": "2028-05-29",
+      "name": "Memorial Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-06-19",
+      "name": "Juneteenth National Independence Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-07-04",
+      "name": "Independence Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-09-04",
+      "name": "Labor Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-11-23",
+      "name": "Thanksgiving Day",
+      "year": 2028
+    },
+    {
+      "date": "2028-12-25",
+      "name": "Christmas Day",
+      "year": 2028
+    }
+  ]
+}

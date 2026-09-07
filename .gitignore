@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables (NEVER commit sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Build outputs & caches
+dist/
+build/
+.cache
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Backups & archives (keep only current version in repo)
+backups/
+*.zip
+*.7z
+*.rar
+
+# Duplicated folders
+AGROSUD_Flat_Price_Terminal_Pro_v3_1/
+AGROSUD_Flat_Price_Terminal_Pro_v3_2_FINAL_EJECUTABLE.zip
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Database snapshots (if sensitive)
+# Uncomment if db.json contains production data:
+# data/db.json

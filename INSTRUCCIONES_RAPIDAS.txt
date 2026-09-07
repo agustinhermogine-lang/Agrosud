@@ -1,0 +1,37 @@
+AGROSUD FLAT PRICE TERMINAL PRO v3.2 FINAL
+==========================================
+
+1) Instalá Node.js LTS 18 o superior desde https://nodejs.org/
+2) Descomprimí esta carpeta en tu PC.
+3) Ejecutá INSTALAR_WINDOWS.bat una sola vez.
+4) Ejecutá INICIAR_WINDOWS.bat.
+5) El programa abre http://localhost:3000
+
+USDA / WASDE:
+- Ejecutá ABRIR_CONFIGURACION.bat
+- Pegá tu API key gratuita en USDA_API_KEY= (obtenela en https://api.data.gov/signup/)
+- Reiniciá el programa.
+
+CME DataMine (opcional/recomendado para settlements históricos):
+- Completar CME_DATAMINE_API_ID y CME_DATAMINE_API_PASSWORD en .env.
+
+FND:
+- Tu calendario ya está incluido.
+- Para actualizarlo, usar “Importar Excel FND” dentro de Contratos & Fijaciones.
+
+MERCADO:
+- CME Group web entrega datos demorados; la pantalla muestra fuente, estado, fecha y hora.
+- Si falla, conserva el último dato real. Si no existe, muestra SIN FUENTE DISPONIBLE.
+- Actualiza automáticamente cada 30 segundos y permite “Actualizar ahora”.
+
+BACKUP:
+- Copiar periódicamente data\db.json y data\FND_CALENDARIO_ACTUAL.xlsx.
+
+Ver README.md para el detalle completo.
+
+NOVEDADES v3.1:
+- Nuevo contrato: muestra contratos equivalentes y contratos objetivo.
+- Seguimiento: contratos fijados y contratos pendientes.
+- Al completar el objetivo: muestra Flat final del contrato.
+- Mercado: muestra todas las posiciones devueltas por CME para cada producto configurado.
+- WASDE: variables en filas y últimos 3 snapshots guardados en columnas.

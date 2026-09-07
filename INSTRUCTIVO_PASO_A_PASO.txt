@@ -1,0 +1,76 @@
+AGROSUD FLAT PRICE TERMINAL PRO v3.2
+INSTRUCTIVO PASO A PASO - WINDOWS
+====================================
+
+A. PRIMERA INSTALACION
+----------------------
+1. Instalar Node.js LTS 18 o superior desde https://nodejs.org/
+2. Descomprimir el ZIP completo en una carpeta local. Ejemplo:
+   C:\AGROSUD\FlatPriceTerminal
+3. Entrar en esa carpeta.
+4. Hacer doble clic en INSTALAR_WINDOWS.bat
+5. Esperar a que termine npm install y la verificacion.
+6. Cuando indique que termino correctamente, cerrar esa ventana.
+
+B. ABRIR EL PROGRAMA
+--------------------
+1. Hacer doble clic en INICIAR_WINDOWS.bat
+2. Se abrira el navegador en http://localhost:3000
+3. Mantener abierta la ventana negra mientras se use la terminal.
+4. Para cerrar el programa: Ctrl+C en esa ventana o cerrarla.
+
+C. USDA / WASDE
+---------------
+1. Obtener una API key de API.Data.Gov.
+2. Ejecutar ABRIR_CONFIGURACION.bat
+3. Completar con tu propia clave (no publiques ni compartas la clave):
+  USDA_API_KEY=TU_CLAVE_DE_API_DATA_GOV
+4. Guardar y reiniciar la terminal.
+5. El sistema guarda cada release nuevo en data\db.json y muestra hasta los ultimos 3 snapshots guardados.
+
+D. SPREADS / FND
+----------------
+- El calendario FND ya viene incluido en data\FND_CALENDARIO_ACTUAL.xlsx
+- El sistema calcula FND - 2 dias habiles usando los feriados del Excel.
+- Intenta settlements historicos en este orden:
+  1) CME web
+  2) CME DataMine, si se configuran credenciales
+  3) Carga manual desde la propia pantalla si las fuentes automaticas fallan
+
+MERCADO:
+- CME Group web es una fuente demorada, no tiempo real.
+- Si CME devuelve 403 o falla, se conserva el ultimo dato real guardado con fecha, fuente y estado.
+- ZM, ZO, SOR y BAR solo se consultan si se configura un Product ID CME o MARKET_API_URL.
+- Sorgo y cebada muestran SIN FUENTE DISPONIBLE si no hay una fuente compatible; nunca se reemplazan por maiz o trigo.
+- MARKET_REFRESH_MS define el intervalo automatico y MARKET_CACHE_MS evita solicitudes duplicadas.
+- MARKET_API_URL y MARKET_API_KEY permiten una API real autorizada. La API debe devolver contratos con symbol/ticker, expirationMonth, last, change, high, low y settlement/priorSettle.
+
+USDA:
+- El boton Actualizar USDA consulta USDA FAS PSD y guarda solo releases con fecha oficial.
+- Se conservan los ultimos tres snapshots reales. Sin API key se muestra el instructivo y no se muestran datos inventados.
+
+E. CONTRATOS Y FIJACIONES
+-------------------------
+- El contrato fisico se carga en MT.
+- El sistema muestra los contratos equivalentes y calcula los contratos objetivo enteros.
+- Las fijaciones se cargan por cantidad de contratos CBOT.
+- Siempre muestra contratos fijados y pendientes.
+- Cuando pendientes llega a 0, el contrato queda COMPLETO y muestra el Flat final ponderado de todas las fijaciones.
+
+F. BACKUP
+---------
+Copiar periodicamente:
+- data\db.json
+- data\FND_CALENDARIO_ACTUAL.xlsx
+- data\fnd-calendar.json
+
+G. SI NO ARRANCA
+----------------
+- Si dice que Node no existe: reinstalar Node.js y marcar Add to PATH.
+- Si npm install falla: revisar Internet, firewall o proxy de la empresa.
+- Se puede ejecutar manualmente en CMD dentro de la carpeta:
+  npm install
+  npm run verify
+  npm start
+
+Ver README.md para informacion tecnica y limitaciones de las fuentes.
