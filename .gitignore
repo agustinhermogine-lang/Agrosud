@@ -40,6 +40,10 @@ AGROSUD_Flat_Price_Terminal_Pro_v3_2_FINAL_EJECUTABLE.zip
 tmp/
 temp/
 *.tmp
+check-excel-years.js
+extend-fnd-years.js
+extend-fnd.py
+fix-fnd.js
 
 # Database snapshots (if sensitive)
 # Uncomment if db.json contains production data:

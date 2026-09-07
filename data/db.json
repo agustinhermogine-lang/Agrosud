@@ -200,7 +200,7 @@
   "manualMarket": {},
   "lastMarket": {
     "ZL": {
-      "savedAt": "2026-09-07T19:58:00.699Z",
+      "savedAt": "2026-09-07T19:59:30.662Z",
       "source": "API externa configurada",
       "state": "DEMORADO",
       "positions": [
@@ -351,7 +351,7 @@
       ]
     },
     "ZC": {
-      "savedAt": "2026-09-07T19:58:00.695Z",
+      "savedAt": "2026-09-07T19:59:30.663Z",
       "source": "API externa configurada",
       "state": "DEMORADO",
       "positions": [
@@ -448,7 +448,7 @@
       ]
     },
     "ZS": {
-      "savedAt": "2026-09-07T19:58:00.696Z",
+      "savedAt": "2026-09-07T19:59:30.674Z",
       "source": "API externa configurada",
       "state": "DEMORADO",
       "positions": [
@@ -581,7 +581,7 @@
       ]
     },
     "ZW": {
-      "savedAt": "2026-09-07T19:58:00.702Z",
+      "savedAt": "2026-09-07T19:59:30.661Z",
       "source": "API externa configurada",
       "state": "DEMORADO",
       "positions": [
@@ -678,7 +678,7 @@
       ]
     },
     "ZO": {
-      "savedAt": "2026-09-07T19:58:00.696Z",
+      "savedAt": "2026-09-07T19:59:30.664Z",
       "source": "API externa configurada",
       "state": "DEMORADO",
       "positions": [
@@ -775,7 +775,7 @@
       ]
     },
     "ZM": {
-      "savedAt": "2026-09-07T19:58:00.703Z",
+      "savedAt": "2026-09-07T19:59:30.663Z",
       "source": "API externa configurada",
       "state": "DEMORADO",
       "positions": [
