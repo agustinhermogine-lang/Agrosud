@@ -823,10 +823,14 @@ function wasdeFileLinks(html){
 async function syncWasdePublication(force=false){
   const now=Date.now();
   if(!force && wasdeReportCache.report && now-wasdeReportCache.checkedAt<6*60*60*1000) return wasdeReportCache.report;
-  const response=await axios.get(USDA_WASDE_INDEX,{timeout:20000,headers:{"User-Agent":"AGROSUD Flat Price Terminal Pro"}});
-  const links=wasdeFileLinks(response.data).filter(x=>x.release);
+  const pages=await Promise.all([USDA_WASDE_INDEX,`${USDA_WASDE_INDEX}?page=1`].map(url=>axios.get(url,{timeout:20000,headers:{"User-Agent":"AGROSUD Flat Price Terminal Pro"}})));
+  const links=pages.flatMap(response=>wasdeFileLinks(response.data)).filter(x=>x.release).filter((link,index,all)=>all.findIndex(other=>other.href===link.href)===index);
   if(!links.length) throw new Error("USDA ESMIS no publicó un WASDE descargable");
-  const releases=[...new Set(links.map(x=>x.release))].sort().reverse().slice(0,3);
+  const availableReleases=[...new Set(links.map(x=>x.release))].sort().reverse();
+  const latestRelease=availableReleases[0];
+  const latestParts=latestRelease.split('-').map(Number);
+  const yearAgoRelease=`${latestParts[0]-1}-${String(latestParts[1]).padStart(2,'0')}`;
+  const releases=[...new Set([...availableReleases.slice(0,3),yearAgoRelease])];
   fs.mkdirSync(USDA_REPORTS_DIR,{recursive:true});
   const reports=[];
   for(const release of releases){
@@ -860,16 +864,19 @@ function parsePublishedWasdeSnapshot(symbol,report){
   if(!report?.textFile) return null;
   const textPath=path.join(USDA_REPORTS_DIR,report.textFile);
   if(!fs.existsSync(textPath)) return null;
-  const title=wasdeSectionTitle(symbol), text=fs.readFileSync(textPath,"utf8"), start=text.indexOf(title);
+  const title=wasdeSectionTitle(symbol), text=fs.readFileSync(textPath,"utf8"), start=text.lastIndexOf(title);
   if(start<0) return null;
-  const next=text.indexOf("\n                      World ",start+title.length), section=text.slice(start,next<0?text.length:next);
-  const projection=section.slice(section.indexOf("2026/27 Proj.")>=0?section.indexOf("2026/27 Proj."):0);
+  let next=text.indexOf("\n                      World ",start+title.length);
+  while(next>=0&&text.slice(next,next+140).includes(title)) next=text.indexOf("\n                      World ",next+1);
+  const section=text.slice(start,next<0?text.length:next);
+  const projectionMatch=section.match(/(?:19|20)\d{2}\/\d{2} Proj\./);
+  const projection=section.slice(projectionMatch?.index||0);
   const rowsByCountry=new Map(); let currentCountry=null;
   for(const line of projection.split(/\r?\n/)){
-    const countryMatch=line.match(/^\s*([A-Za-z][A-Za-z .&'()\/-]+?)\s*$/);
+    const countryMatch=line.match(/^\s*([A-Za-z][A-Za-z .&'()\/-]+?)(?=\s+-?\d|\s*$)/);
     if(countryMatch){
       const candidate=countryMatch[1].trim();
-      currentCountry=/^(World|World Less|Total Foreign|Major |Selected |European Union|N\. Afr|Southeast Asia|North Africa)/i.test(candidate)?null:candidate;
+      if(!/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/i.test(candidate)) currentCountry=/^(World|World Less|Total Foreign|Major |Selected |European Union|N\. Afr|Southeast Asia|North Africa)$/i.test(candidate)?null:candidate;
     }
     const values=line.match(/-?\d+(?:\.\d+)?/g)?.map(Number)||[];
     if(currentCountry){
@@ -938,7 +945,13 @@ app.get("/api/wasde/:symbol",async(req,res)=>{
     if(!db.wasdeHistory[key].some(x=>x.release===current.release)){ db.wasdeHistory[key].push(current); db.wasdeHistory[key]=db.wasdeHistory[key].slice(-3); writeDb(db); }
     source = process.env.USDA_API_KEY ? "FALLBACK local visible después de un error oficial" : "FALLBACK local visible para pruebas: configura USDA_API_KEY para datos oficiales";
   }
-  const history=db.wasdeHistory[key]||[]; res.json({status:"success",symbol,marketYear,source,configured:!!process.env.USDA_API_KEY,lastUpdatedAt:history.at(-1)?.fetchedAt||null,current:current||history.at(-1)||null,history,publishedReport,wasdeReports:db.wasdeReports.slice(-12)});
+  const history=db.wasdeHistory[key]||[];
+  const latestRelease=(current||history.at(-1))?.release;
+  const latestParts=latestRelease?.match(/^(\d{4})-(\d{2})$/);
+  const yearAgoRelease=latestParts?`${Number(latestParts[1])-1}-${latestParts[2]}`:null;
+  const parsedReports=(db.wasdeReports||[]).map(report=>parsePublishedWasdeSnapshot(symbol,report)).filter(Boolean);
+  const annualSnapshot=yearAgoRelease?parsedReports.find(snapshot=>snapshot.release===yearAgoRelease)||null:null;
+  res.json({status:"success",symbol,marketYear,source,configured:!!process.env.USDA_API_KEY,lastUpdatedAt:history.at(-1)?.fetchedAt||null,current:current||history.at(-1)||null,history,annualComparison:{release:yearAgoRelease,snapshot:annualSnapshot},publishedReport,wasdeReports:db.wasdeReports.slice(-12)});
 });
 
 app.get("/api/health",(req,res)=>{ const f=loadFnd(); res.json({status:"success",service:"AGROSUD Flat Price Terminal Pro",version:"3.2.0",time:new Date().toISOString(),usdaConfigured:!!process.env.USDA_API_KEY,dataMineConfigured:!!(process.env.CME_DATAMINE_API_ID&&process.env.CME_DATAMINE_API_PASSWORD),externalMarketConfigured:!!process.env.MARKET_API_URL,fndLoaded:f.entries.length>0,fndPositions:f.entries.length,fndHolidays:f.holidays.length,marketRefreshMs:Number(process.env.MARKET_REFRESH_MS||30000),marketMode:"CME web como prioridad → API externa como fallback → último dato real → manual",settlementMode:"CME settlements web → CME DataMine → manual guardado"}); });
