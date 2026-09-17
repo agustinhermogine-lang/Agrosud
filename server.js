@@ -857,6 +857,23 @@ async function syncWasdePublication(force=false){
   wasdeReportCache={checkedAt:now,report:reports[0]};
   return reports[0];
 }
+function normalizeCountryName(name){
+  return String(name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+}
+function ensureArgentinaCountry(countries, symbol=null){
+  if(!Array.isArray(countries)) return [];
+  const items = countries.filter(Boolean);
+  const idx = items.findIndex(c => normalizeCountryName(c.country).includes("argentina"));
+  if(idx !== -1){
+    const [argentina] = items.splice(idx, 1);
+    return [argentina, ...items];
+  }
+  if(symbol){
+    const fallback = (buildLocalUsdaSnapshot(symbol, Number(process.env.USDA_MARKET_YEAR || new Date().getUTCFullYear())).countries || []).find(c => normalizeCountryName(c.country).includes("argentina"));
+    if(fallback) return [{ ...fallback, country: "Argentina" }, ...items];
+  }
+  return items;
+}
 function wasdeSectionTitle(symbol){
   return {ZS:"World Soybean Supply and Use",ZC:"World Coarse Grain Supply and Use",ZW:"World Wheat Supply and Use",ZM:"World Soybean Meal Supply and Use",ZL:"World Soybean Oil Supply and Use"}[symbol]||null;
 }
@@ -888,7 +905,7 @@ function parsePublishedWasdeSnapshot(symbol,report){
       }
     }
   }
-  const countries=[...rowsByCountry.values()].filter(x=>x.exports!==null).sort((a,b)=>b.exports-a.exports).slice(0,5);
+  const countries=ensureArgentinaCountry([...rowsByCountry.values()].filter(x=>x.exports!==null).sort((a,b)=>b.exports-a.exports), symbol).slice(0,5);
   return countries.length?{symbol,marketYear:Number(report.release.slice(0,4)),release:report.release,fetchedAt:report.downloadedAt,source:"USDA WASDE PDF/Texto oficial",countries}:null;
 }
 function getField(row,names){ for(const n of names) if(row[n]!==undefined&&row[n]!==null) return row[n]; return null; }
@@ -909,7 +926,8 @@ async function fetchPsdSnapshot(symbol,marketYear){
   const cfg=PRODUCTS[symbol]; const raw=await usdaGet(`/commodity/${cfg.psdCode}/country/all/year/${marketYear}`); const rows=Array.isArray(raw)?raw:(raw?.data||raw?.Data||[]); const groups={};
   for(const r of rows){const c=country(r);if(c)(groups[c]||=[]).push(r);}
   let countries=Object.entries(groups).map(([name,rs])=>({country:name,production:findMetric(rs,/^Production$/i),exports:findMetric(rs,/(^Exports$|Exports\b)/i),imports:findMetric(rs,/(^Imports$|Imports\b)/i),domestic:findMetric(rs,/Domestic Consumption/i),crush:findMetric(rs,/Crush/i),industrial:findMetric(rs,/Industrial.*(Consumption|Use)|Industrial Dom/i),feed:findMetric(rs,/Feed.*Domestic|Feed Waste Dom/i),beginningStocks:findMetric(rs,/Beginning Stocks|Opening Stocks/i),stocks:findMetric(rs,/Ending Stocks/i)})).filter(x=>x.exports!==null&&!/^(World|Total)$/i.test(x.country));
-  countries.sort((a,b)=>(b.exports||0)-(a.exports||0)); countries=countries.slice(0,5);
+  countries.sort((a,b)=>(b.exports||0)-(a.exports||0));
+  countries=ensureArgentinaCountry(countries, symbol).slice(0,5);
   const release=await releaseLabel(cfg.psdCode);
   if(!release) throw new Error("USDA no informó la fecha de release; no se archiva el snapshot");
   return {symbol,marketYear:Number(marketYear),release,fetchedAt:new Date().toISOString(),source:"USDA FAS PSD API",countries};
