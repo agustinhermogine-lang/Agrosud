@@ -9,6 +9,7 @@ const zlib = require("zlib");
 const multer = require("multer");
 const XLSX = require("xlsx");
 const { parse: parseCsv } = require("csv-parse/sync");
+const { fetchYahooProduct, SPECS: YAHOO_SPECS } = require("./market-yahoo.cjs");
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -608,7 +609,13 @@ function contractSummary(contract, fixings){
 }
 
 // -------------------- API --------------------
-app.get("/api/market",async(req,res)=>{ try{res.json({status:"success",...(await marketData(req.query.force==="1"))});}catch(e){res.status(500).json({status:"error",message:e.message});} });
+const yahooSnapshots=new Map(),yahooPending=new Map();
+app.get("/api/market",async(req,res)=>{
+ try{const selected=req.query.product?String(req.query.product).toUpperCase():null;if(selected&&!YAHOO_SPECS[selected])return res.status(400).json({status:"error",message:"Producto inválido"});const products={};
+ await Promise.all((selected?[selected]:Object.keys(YAHOO_SPECS)).map(async symbol=>{const old=yahooSnapshots.get(symbol);if(old&&Date.now()-old.at<(old.data.retryAfterMs||15000)){products[symbol]=old.data;return;}if(!yahooPending.has(symbol))yahooPending.set(symbol,fetchYahooProduct(symbol,{previous:old?.data}).then(data=>{yahooSnapshots.set(symbol,{at:Date.now(),data});return data;}).finally(()=>yahooPending.delete(symbol)));products[symbol]=await yahooPending.get(symbol);}));
+ res.json({status:"success",fetchedAt:new Date().toISOString(),refreshMs:15000,products});
+ }catch(e){res.status(502).json({status:"error",message:"No se pudo consultar el mercado. Reintentá en unos segundos."});}
+});
 app.get("/api/factors",(req,res)=>res.json({status:"success",products:PRODUCTS}));
 // A3 / Primary: exclusivamente consulta de mercado. Nunca se envían órdenes.
 let a3TokenCache={token:null,at:0};

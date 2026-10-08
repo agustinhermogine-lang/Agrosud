@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import worker from '../dist/server/index.js';
 const sqlite=new DatabaseSync('preview.sqlite');
 sqlite.exec('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY,state TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)');
+sqlite.exec('CREATE TABLE IF NOT EXISTS market_cache (product TEXT PRIMARY KEY,payload TEXT NOT NULL DEFAULT \'{}\',fetched_at INTEGER NOT NULL DEFAULT 0,lock_until INTEGER NOT NULL DEFAULT 0)');
 const DB={prepare(sql){let params=[];return {bind(...p){params=p;return this;},async run(){const r=sqlite.prepare(sql).run(...params);return {meta:{changes:Number(r.changes)}};},async first(){return sqlite.prepare(sql).get(...params)||null;}};}};
 const port=4173;
 http.createServer(async(req,res)=>{try{const chunks=[];for await(const c of req)chunks.push(c);const body=Buffer.concat(chunks);const request=new Request(`http://${req.headers.host}${req.url}`,{method:req.method,headers:req.headers,body:body.length?body:undefined});const response=await worker.fetch(request,{DB});res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));}catch(e){console.error(e);res.writeHead(500);res.end('Error de preview');}}).listen(port,'127.0.0.1',()=>console.log(`Local URL: http://localhost:${port}/`));

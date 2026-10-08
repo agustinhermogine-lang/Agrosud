@@ -68,8 +68,8 @@ input[style*="background:#0d3a1f"],input[style*="background:#3a1015"]{background
 </nav></div>
 <main class="content">
 <section id="market" class="page active">
-  <div class="panel"><div class="ph"><div><h3>Estado de mercado</h3><div class="muted">Actualización automática configurable mediante MARKET_REFRESH_MS</div></div><button class="action" onclick="refreshMarketNow()">↻ Actualizar ahora</button></div><div class="body"><div class="auto-strip"><div class="auto-box"><small>Última consulta</small><b id="marketUpdatedAt">—</b></div><div class="auto-box"><small>Próxima actualización</small><b id="marketNextAt">—</b></div><div class="auto-box"><small>Estado conexión</small><b id="marketConnection">—</b></div><div class="auto-box"><small>Intervalo</small><b id="marketRefreshInterval">—</b></div></div></div></div>
-  <div class="note"><b>Mercado:</b> se muestran únicamente datos recibidos de fuentes reales, último dato persistido o cargas manuales identificadas. CME web es demorado/de referencia; no se muestran valores simulados.</div>
+  <div class="panel"><div class="ph"><div><h3>Estado de mercado</h3><div class="muted">Consulta automática cada 15 segundos · Yahoo Finance por vencimiento</div></div><button class="action" onclick="refreshMarketNow()">↻ Actualizar ahora</button></div><div class="body"><div class="auto-strip"><div class="auto-box"><small>Última consulta</small><b id="marketUpdatedAt">—</b></div><div class="auto-box"><small>Próxima actualización</small><b id="marketNextAt">—</b></div><div class="auto-box"><small>Estado conexión</small><b id="marketConnection">—</b></div><div class="auto-box"><small>Intervalo</small><b id="marketRefreshInterval">—</b></div></div></div></div>
+  <div class="note"><b>Mercado:</b> contratos individuales recibidos de Yahoo Finance, con datos demorados. Se consultan los meses contractuales de los próximos cinco años y se muestran todos los que la fuente devuelve con precio; no se inventan cotizaciones. Consultar más seguido no elimina la demora del proveedor. En vencimientos poco operados, la última operación puede ser antigua: revisá su fecha y antigüedad. El cierre anterior de Yahoo no equivale a un settlement oficial CME.</div>
   <div id="marketGrid" class="market-grid"></div>
 </section>
 
@@ -194,7 +194,7 @@ input[style*="background:#0d3a1f"],input[style*="background:#3a1015"]{background
 <section id="factors" class="page">
   <div class="panel"><div class="ph"><div><h3>Factores de conversión</h3><div class="muted">Precio nativo × factor = USD/MT</div></div></div><div class="body factor-grid" id="factorGrid"></div></div>
 </section>
-<div class="note" style="margin:8px 14px 18px"><b>Fuentes:</b> mercado CME web demorado/de referencia; settlements históricos por CME web y, si está configurado, CME DataMine; fundamentales USDA FAS PSD mediante API.Data.Gov. El sistema guarda contratos, fijaciones, snapshots USDA y últimos datos de mercado en <code>data/db.json</code>.</div>
+<div class="note" style="margin:8px 14px 18px"><b>Fuentes:</b> cotizaciones por contrato de Yahoo Finance, demoradas; settlements históricos CME y cargas manuales; fundamentales USDA oficiales cuando están disponibles, con archivos de referencia identificados. A3 requiere acceso autorizado a su API. Los contratos y fijaciones se conservan en el servidor.</div>
 </main>
 </div>
 <script>
@@ -220,10 +220,12 @@ async function onContractProductChange(){
 }
 async function importFnd(){const file=fndUpload.files[0];if(!file){alert('Seleccioná el Excel FND');return}const fd=new FormData();fd.append('file',file);try{fndImportMsg.textContent='Importando…';const j=await api('/api/fnd/import',{method:'POST',body:fd});fndImportMsg.textContent=`✓ ${j.data.positions} posiciones y ${j.data.holidays} feriados cargados`;await loadFndStatus();await onContractProductChange();await loadContracts();await loadHealth()}catch(e){fndImportMsg.textContent='Error: '+e.message}}
 let marketNextTimer=null,marketLastResponse=null;
-function marketStateLabel(state){return ({DEMORADO:'DEMORADO','ULTIMO DATO':'ÚLTIMO DATO',MANUAL:'MANUAL'})[state]||'SIN FUENTE DISPONIBLE'}
+function marketStateLabel(state){return ({DEMORADO:'DEMORADO','ULTIMO DATO':'ÚLTIMO DATO',MANUAL:'MANUAL',CONSULTANDO:'CONSULTANDO'})[state]||'SIN FUENTE DISPONIBLE'}
+function marketAge(value){const time=Date.parse(value);if(!Number.isFinite(time))return 'Sin hora informada';const seconds=Math.max(0,Math.floor((Date.now()-time)/1000));if(seconds<60)return seconds+' s';if(seconds<3600)return Math.floor(seconds/60)+' min';if(seconds<86400)return Math.floor(seconds/3600)+' h '+Math.floor(seconds%3600/60)+' min';return Math.floor(seconds/86400)+' días';}
+function updateMarketAges(){document.querySelectorAll('[data-market-time]').forEach(el=>el.textContent=marketAge(el.dataset.marketTime));}
 function renderMarket(j){
   marketLastResponse=j; const now=new Date(j.fetchedAt); marketUpdatedAt.textContent=Number.isNaN(now.getTime())?'—':now.toLocaleString('es-AR'); marketRefreshInterval.textContent=fmt(j.refreshMs/1000,0)+' s';
-  const next=new Date(now.getTime()+Number(j.refreshMs||30000)); marketNextAt.textContent=next.toLocaleTimeString('es-AR'); marketConnection.textContent=Object.values(j.products).some(p=>p.positions.length)?'Con datos / revisar fuente':'Sin conexión o sin fuente';
+  const next=new Date(now.getTime()+Number(j.refreshMs||15000)); marketNextAt.textContent=next.toLocaleTimeString('es-AR'); const products=Object.values(j.products),ready=products.filter(p=>p.positions?.length).length,loading=products.some(p=>p.state==='CONSULTANDO');marketConnection.textContent=loading?'Consultando productos · '+ready+'/'+products.length:ready===products.length?'Conectado a Yahoo · datos demorados':ready?'Datos disponibles en '+ready+'/'+products.length+' productos':'Yahoo sin respuesta válida · reintentando';
   clearTimeout(marketNextTimer);marketNextTimer=setTimeout(()=>{marketNextAt.textContent='Ahora';},Math.max(0,next-Date.now()));
   marketGrid.innerHTML=Object.entries(j.products).map(([k,p])=>{
     const rows = Array.isArray(p.positions) ? p.positions : [];
@@ -236,11 +238,12 @@ function renderMarket(j){
         </div>
         <div class="market-summary">
           <span class="source-pill">${esc(marketStateLabel(p.state))}</span>
-          <span>${rows.length} posiciones</span>
+          <span>${rows.length} vencimientos con datos</span>
           <span class="muted">• ${esc(sourceBadge)}</span>
         </div>
       </div>
       ${p.error?`<div class="note warnnote" style="margin:10px">Fuente temporalmente sin conexión: ${esc(p.error)}. Los valores anteriores no fueron borrados.</div>`:''}
+      ${p.warning?`<div class="note warnnote" style="margin:10px">${esc(p.warning)}</div>`:''}
       <div class="miniwrap">
         <table class="mini">
           <thead>
@@ -253,13 +256,14 @@ function renderMarket(j){
               <th>Var. %</th>
               <th>Máximo</th>
               <th>Mínimo</th>
-              <th>Settle anterior</th>
+              <th>Cierre anterior</th>
               <th>Fecha/hora</th>
+              <th>Antigüedad del dato</th>
               <th>Fuente / estado</th>
             </tr>
           </thead>
           <tbody>
-            ${rows.length ? rows.map(x=>`<tr><td><b>${esc(x.position||'')}</b></td><td>${esc(x.monthName||'')} ${esc(x.year||'')}</td><td>${fmt(x.last)} ${esc(p.unit||'')}</td><td class="usd">${fmt(x.usdMt)} USD/MT</td><td class="${Number(x.change)>=0?'up':'down'}">${x.change==null?'—':(Number(x.change)>=0?'+':'')+fmt(x.change)} ${esc(p.unit||'')}</td><td>${x.changePercent==null?'—':fmt(x.changePercent)+'%'}</td><td>${fmt(x.high)} ${esc(p.unit||'')}</td><td>${fmt(x.low)} ${esc(p.unit||'')}</td><td class="settle">${fmt(x.settle)} ${esc(p.unit||'')}</td><td>${x.updatedAt?esc(new Date(x.updatedAt).toLocaleString('es-AR')):'—'}</td><td>${esc(x.source||p.sourceMode||'')} · ${esc(marketStateLabel(x.state||p.state))}</td></tr>`).join('') : `<tr><td colspan="11">SIN FUENTE DISPONIBLE. Configurá Product ID, una API externa autorizada o una carga manual. No se usa otro producto como reemplazo.</td></tr>`}
+            ${rows.length ? rows.map(x=>`<tr><td><b>${esc(x.position||'')}</b></td><td>${esc(x.monthName||'')} ${esc(x.year||'')}</td><td>${fmt(x.last)} ${esc(p.unit||'')}</td><td class="usd">${fmt(x.usdMt)} USD/MT</td><td class="${Number(x.change)>=0?'up':'down'}">${x.change==null?'—':(Number(x.change)>=0?'+':'')+fmt(x.change)} ${esc(p.unit||'')}</td><td>${x.changePercent==null?'—':fmt(x.changePercent)+'%'}</td><td>${fmt(x.high)} ${esc(p.unit||'')}</td><td>${fmt(x.low)} ${esc(p.unit||'')}</td><td class="settle">${fmt(x.previousClose)} ${esc(p.unit||'')}</td><td>${x.updatedAt?esc(new Date(x.updatedAt).toLocaleString('es-AR')):'—'}</td><td data-market-time="${esc(x.updatedAt||'')}">${esc(marketAge(x.updatedAt))}</td><td>${esc(x.source||p.sourceMode||'')} · ${esc(marketStateLabel(x.state||p.state))}</td></tr>`).join('') : `<tr><td colspan="12">${p.state==='CONSULTANDO'?'Consultando los vencimientos de este producto…':'Yahoo no devolvió cotizaciones válidas. Se reintentará automáticamente sin inventar precios.'}</td></tr>`}
           </tbody>
         </table>
       </div>
@@ -267,7 +271,8 @@ function renderMarket(j){
     </div>`;
   }).join('');
 }
-async function loadMarket(force=false){try{const j=await api('/api/market'+(force?'?force=1':''));renderMarket(j)}catch(e){marketConnection.textContent='Error';marketGrid.innerHTML=`<div class="note errornote">${esc(e.message)}</div>`}}
+let marketLoadPromise=null;
+async function loadMarket(force=false){if(marketLoadPromise)return marketLoadPromise;const symbols=['ZC','ZS','ZW','ZM','ZL','ZO'];if(!marketLastResponse)renderMarket({fetchedAt:new Date().toISOString(),refreshMs:15000,products:Object.fromEntries(symbols.map(s=>[s,{...(FACTORS[s]||{}),positions:[],state:'CONSULTANDO',sourceMode:'Yahoo Finance'}]))});marketLoadPromise=Promise.allSettled(symbols.map(async symbol=>{try{const j=await api('/api/market?product='+symbol+(force?'&force=1':''));renderMarket({...j,products:{...marketLastResponse.products,...j.products}});}catch(e){const old=marketLastResponse.products[symbol];renderMarket({fetchedAt:new Date().toISOString(),refreshMs:15000,products:{...marketLastResponse.products,[symbol]:{...old,state:old.positions.length?'ULTIMO DATO':'SIN FUENTE DISPONIBLE',error:old.positions.length?null:e.message,warning:old.positions.length?'No se pudo actualizar; se conserva la última respuesta.':null}}});}})).finally(()=>marketLoadPromise=null);return marketLoadPromise;}
 async function refreshMarketNow(){await loadMarket(true)}
 async function createContract(){
   try{if(!cId.value.trim())throw new Error('Ingresá el número de contrato');const cfg=FACTORS[cProduct.value]||{};const theoretical=Number(cTotal.value||0)/Number(cfg.mtPerContract||1);const targetContracts=Math.max(1,Math.round(theoretical));const minTol=Number(cMinTolerance.value||0),maxTol=Number(cMaxTolerance.value||0);await api('/api/contracts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:cId.value.trim(),product:cProduct.value,totalMt:+cTotal.value,targetContracts,premiumNative:+cPremium.value,contractPosition:cPosition.value,type:cType.value,contractPriceUsdMt:cContractPrice.value===''?null:+cContractPrice.value,minTolerancePercent:minTol,maxTolerancePercent:maxTol})});cId.value='';cMinTolerance.value='0';cMaxTolerance.value='0';await loadContracts();alert('Contrato guardado')}catch(e){alert(e.message)}
@@ -347,7 +352,7 @@ async function renderAnnualComparison(force=false){
 const loadWasdeBase=loadWasde;
 loadWasde=async function(force=false){await loadWasdeBase(force);await renderAnnualComparison(force)};
 async function refreshWasdeNow(){await loadWasde(true)}
-async function init(){setupMenu();fDate.value=new Date().toISOString().slice(0,10);toggleContractPrice();await Promise.all([loadHealth(),loadFndStatus(),loadFactors()]);await Promise.all([loadMarket(),loadContracts()]);updateContractEquivalent();changeWasdeProduct();setInterval(()=>loadMarket(),Number(HEALTH.marketRefreshMs||30000));setInterval(()=>clock.textContent=new Date().toLocaleString('es-AR'),1000)}
+async function init(){setupMenu();fDate.value=new Date().toISOString().slice(0,10);toggleContractPrice();await Promise.all([loadHealth(),loadFndStatus(),loadFactors()]);await Promise.all([loadMarket(),loadContracts()]);updateContractEquivalent();changeWasdeProduct();setInterval(()=>{if(!document.hidden)loadMarket();},15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadMarket();});setInterval(()=>{clock.textContent=new Date().toLocaleString('es-AR');updateMarketAges();},1000)}
 init();
 </script>
 </body>

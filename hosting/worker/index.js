@@ -5,6 +5,7 @@ import {routes} from './express.js';
 import {context} from './context.js';
 import {loadSession,saveSession} from './storage.js';
 import {Buffer} from 'node:buffer';
+import {marketResponse} from './market.js';
 const cookieName='__Host-agrosud';
 function json(body,status=200){return Response.json(body,{status});}
 function match(route,pathname){
@@ -24,6 +25,7 @@ export default {async fetch(request,env){
  const route=routes.find(r=>r.method===request.method&&r.path!=='*'&&match(r.path,url.pathname));
  if(!route)return json({status:'error',message:'Ruta no encontrada'},404);
  try{
+ if(url.pathname==='/api/market'&&request.method==='GET')return await marketResponse(url,env.DB);
  const sessionId=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))).toString('hex');
  const {state,revision}=await loadSession(env.DB,sessionId);
  const files={...seed,...state.files};

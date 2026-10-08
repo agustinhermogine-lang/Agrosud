@@ -5,6 +5,7 @@ import {DatabaseSync} from 'node:sqlite';
 import worker from '../dist/server/index.js';
 const sqlite=new DatabaseSync(':memory:');
 sqlite.exec(readFileSync(new URL('../drizzle/0000_outstanding_overlord.sql',import.meta.url),'utf8'));
+sqlite.exec(readFileSync(new URL('../drizzle/0001_fancy_pepper_potts.sql',import.meta.url),'utf8'));
 const DB={prepare(sql){let params=[];return {bind(...p){params=p;return this;},async run(){const r=sqlite.prepare(sql).run(...params);return {meta:{changes:Number(r.changes)}};},async first(){return sqlite.prepare(sql).get(...params)||null;}};}};
 const origin='https://agrosud.test';
 let cookie;
@@ -41,13 +42,14 @@ test('contratos, fijaciones, separación por visitante, importación y validaci�
  const rejected=await worker.fetch(new Request(origin+'/api/contracts',{method:'POST',headers:{Origin:'https://otro.test','content-type':'application/json'},body:JSON.stringify(contract)}),{DB});assert.equal(rejected.status,403);
  assert.equal((await request('/api/desconocida')).response.status,404);
 });
-test('el fallback de Yahoo conserva una referencia y no inventa una curva',async()=>{
+test('Yahoo consulta contratos individuales, usa el último precio y comparte la caché',async()=>{
  const originalFetch=globalThis.fetch;
+ let calls=0;
  globalThis.fetch=async url=>{
-  if(String(url).includes('yahoo.com'))return Response.json({chart:{result:[{meta:{symbol:'ZC=F',regularMarketPrice:400,chartPreviousClose:390,regularMarketTime:1791464400},timestamp:[1791464400],indicators:{quote:[{close:[400],high:[405],low:[389]}]}}]}});
-  return Response.json({quotes:[]});
+  calls++;if(!String(url).includes('ZCZ26.CBT'))return new Response('',{status:404});
+  return Response.json({chart:{result:[{meta:{symbol:'ZCZ26.CBT',regularMarketPrice:400,chartPreviousClose:390,regularMarketTime:1791464400,regularMarketDayHigh:405,regularMarketDayLow:389},timestamp:[1791464100],indicators:{quote:[{close:[395],high:[399],low:[389]}]}}]}});
  };
- try{const result=await request('/api/market');assert.equal(result.response.status,200);for(const product of Object.values(result.body.products)){assert.equal(product.positions.length,1);assert.match(product.positions[0].position,/=F$/);assert.equal(product.positions[0].last,400);assert.equal(product.positions[0].monthName,'Referencia continua');}}
+ try{const result=await request('/api/market?product=ZC');assert.equal(result.response.status,200);const product=result.body.products.ZC;assert.equal(product.positions.length,1);assert.equal(product.positions[0].position,'ZCZ26');assert.equal(product.positions[0].last,400);assert.equal(product.positions[0].high,405);assert.equal(product.positions[0].settle,null);assert.equal(product.positions[0].previousClose,390);assert.equal(product.error,null);const before=calls;await request('/api/market?product=ZC');assert.equal(calls,before);}
  finally{globalThis.fetch=originalFetch;}
 });
 test('A3 interpreta cotizaciones del proveedor y oculta las credenciales',async()=>{
