@@ -1,14 +1,16 @@
-require("dotenv").config();
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const zlib = require("zlib");
-const multer = require("multer");
-const XLSX = require("xlsx");
-const { parse: parseCsv } = require("csv-parse/sync");
+import {runtimeProcess as process,current} from '../worker/context.js';
+const __dirname='/app';
+
+import express from 'express';
+import axios from 'axios';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import zlib from 'node:zlib';
+import multer from 'multer';
+import * as XLSX from 'xlsx';
+import {parse as parseCsv} from 'csv-parse/sync';
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -69,7 +71,7 @@ function fallbackPositions(product, year=Number(process.env.USDA_MARKET_YEAR || 
   }));
 }
 
-let marketCache = { at:0, data:null };
+
 let dataMineTokenCache = { token:null, expiresAt:0 };
 
 function ensureDb(){
@@ -410,7 +412,7 @@ function normalizeManualMarket(symbol, rows){
 }
 async function marketData(force=false){
   const ttl=Number(process.env.MARKET_CACHE_MS || 25000);
-  if(!force && marketCache.data && Date.now()-marketCache.at<ttl) return marketCache.data;
+  if(!force && current().marketCache.data && Date.now()-current().marketCache.at<ttl) return current().marketCache.data;
   const db=readDb(); const out={}; let dbChanged=false;
   await Promise.all(Object.entries(PRODUCTS).map(async ([symbol,cfg])=>{
     let positions=null,error=null,sourceMode="",state="SIN FUENTE DISPONIBLE",lastSuccessfulAt=null;
@@ -438,8 +440,8 @@ async function marketData(force=false){
     out[symbol]={symbol,name:cfg.name,factor:cfg.factor,unit:cfg.unit,mtPerContract:cfg.mtPerContract,reference:!!cfg.reference,error,sourceMode,state,lastSuccessfulAt,positions:positions.map(p=>({...p,usdMt:p.last==null?null:p.last*cfg.factor}))};
   }));
   if(dbChanged) writeDb(db);
-  marketCache={at:Date.now(),data:{fetchedAt:new Date().toISOString(),refreshMs:Number(process.env.MARKET_REFRESH_MS||30000),products:out}};
-  return marketCache.data;
+  current().marketCache={at:Date.now(),data:{fetchedAt:new Date().toISOString(),refreshMs:Number(process.env.MARKET_REFRESH_MS||30000),products:out}};
+  return current().marketCache.data;
 }
 
 // -------------------- Historical settlements --------------------
@@ -638,7 +640,7 @@ async function a3Market(){
   return {...common,state:errors?"RESPUESTA PARCIAL":"CONSULTA REST",errors,positions,message:instruments.length?"Cotizaciones obtenidas por consulta REST; la hora corresponde a cada instrumento.":"No se encontraron instrumentos agropecuarios habilitados para esta cuenta."};
 }
 app.get("/api/a3/market",async(req,res)=>{try{res.json(await a3Market());}catch(e){res.status(502).json({status:"error",message:"No se pudo consultar A3. Revisá el acceso y la configuración del proveedor."});}});
-app.put("/api/manual-market/:symbol",(req,res)=>{ const symbol=String(req.params.symbol).toUpperCase(); if(!PRODUCTS[symbol]) return res.status(404).json({status:"error",message:"Producto inválido"}); if(!Array.isArray(req.body.positions)) return res.status(400).json({status:"error",message:"positions debe ser array"}); const db=readDb(); db.manualMarket[symbol]=req.body.positions; writeDb(db); marketCache={at:0,data:null}; res.json({status:"success"}); });
+app.put("/api/manual-market/:symbol",(req,res)=>{ const symbol=String(req.params.symbol).toUpperCase(); if(!PRODUCTS[symbol]) return res.status(404).json({status:"error",message:"Producto inválido"}); if(!Array.isArray(req.body.positions)) return res.status(400).json({status:"error",message:"positions debe ser array"}); const db=readDb(); db.manualMarket[symbol]=req.body.positions; writeDb(db); current().marketCache={at:0,data:null}; res.json({status:"success"}); });
 
 app.get("/api/fnd/status",(req,res)=>{ const f=loadFnd(); res.json({status:"success",sourceFile:f.sourceFile,importedAt:f.importedAt,positions:f.entries.length,holidays:f.holidays.length,products:[...new Set(f.entries.map(e=>e.product))],entries:f.entries}); });
 app.get("/api/fnd/positions/:product",(req,res)=>{ const p=String(req.params.product).toUpperCase(); res.json({status:"success",data:calendarPositions(p)}); });
@@ -779,7 +781,7 @@ app.post("/api/contracts/:id/fixings",async(req,res)=>{
 app.delete("/api/fixings/:id",(req,res)=>{ const db=readDb(); const before=db.fixings.length; db.fixings=db.fixings.filter(f=>f.id!==req.params.id); writeDb(db); res.json({status:"success",deleted:before-db.fixings.length}); });
 
 // -------------------- USDA FAS PSD / WASDE --------------------
-let wasdeReportCache = { checkedAt: 0, report: null };
+
 function wasdeReleaseFromFile(fileName){
   const m=String(fileName).match(/wasde(\d{2})(\d{2})(?:v\d+)?\.(?:pdf|txt)$/i);
   return m ? `20${m[2]}-${m[1]}` : null;
@@ -795,7 +797,7 @@ function wasdeFileLinks(html){
 }
 async function syncWasdePublication(force=false){
   const now=Date.now();
-  if(!force && wasdeReportCache.report && now-wasdeReportCache.checkedAt<6*60*60*1000) return wasdeReportCache.report;
+  if(!force && current().wasdeReportCache.report && now-current().wasdeReportCache.checkedAt<6*60*60*1000) return current().wasdeReportCache.report;
   const pages=await Promise.all([USDA_WASDE_INDEX,`${USDA_WASDE_INDEX}?page=1`].map(url=>axios.get(url,{timeout:20000,headers:{"User-Agent":"AGROSUD Flat Price Terminal Pro"}})));
   const links=pages.flatMap(response=>wasdeFileLinks(response.data)).filter(x=>x.release).filter((link,index,all)=>all.findIndex(other=>other.href===link.href)===index);
   if(!links.length) throw new Error("USDA ESMIS no publicó un WASDE descargable");
@@ -827,7 +829,7 @@ async function syncWasdePublication(force=false){
   for(const report of reports){ db.wasdeReports=db.wasdeReports.filter(x=>x.release!==report.release); db.wasdeReports.push(report); }
   db.wasdeReports=db.wasdeReports.sort((a,b)=>a.release.localeCompare(b.release)).slice(-24);
   writeDb(db);
-  wasdeReportCache={checkedAt:now,report:reports[0]};
+  current().wasdeReportCache={checkedAt:now,report:reports[0]};
   return reports[0];
 }
 function normalizeCountryName(name){
@@ -948,16 +950,4 @@ app.get("/api/wasde/:symbol",async(req,res)=>{
 app.get("/api/health",(req,res)=>{ const f=loadFnd(); res.json({status:"success",service:"AGROSUD Flat Price Terminal Pro",version:"3.2.0",time:new Date().toISOString(),usdaConfigured:!!process.env.USDA_API_KEY,dataMineConfigured:!!(process.env.CME_DATAMINE_API_ID&&process.env.CME_DATAMINE_API_PASSWORD),externalMarketConfigured:!!process.env.MARKET_API_URL,fndLoaded:f.entries.length>0,fndPositions:f.entries.length,fndHolidays:f.holidays.length,marketRefreshMs:Number(process.env.MARKET_REFRESH_MS||30000),marketMode:"CME web como prioridad → API externa como fallback → último dato real → manual",settlementMode:"CME settlements web → CME DataMine → manual guardado"}); });
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 
-ensureDb();
-syncWasdePublication().catch(e=>console.warn(`USDA WASDE PDF: ${e.message}`));
-setInterval(()=>syncWasdePublication(true).catch(e=>console.warn(`USDA WASDE PDF: ${e.message}`)),6*60*60*1000);
-app.listen(PORT,HOST,()=>{
-  const f=loadFnd();
-  console.log("============================================================");
-  console.log(`AGROSUD Flat Price Terminal Pro v3.2: http://localhost:${PORT}`);
-  console.log(`Acceso en red local: http://<IP-DE-ESTA-PC>:${PORT}`);
-  console.log(`FND: ${f.entries.length} posiciones · ${f.holidays.length} feriados · ${f.sourceFile||"sin archivo"}`);
-  console.log(`USDA: ${process.env.USDA_API_KEY?"CONFIGURADA":"SIN KEY"}`);
-  console.log(`CME DataMine: ${process.env.CME_DATAMINE_API_ID&&process.env.CME_DATAMINE_API_PASSWORD?"CONFIGURADO":"OPCIONAL / SIN CREDENCIALES"}`);
-  console.log("============================================================");
-});
+export default app;

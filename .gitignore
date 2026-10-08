@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 package-lock.json
+!hosting/package-lock.json
 
 # Environment variables (NEVER commit sensitive data)
 .env
