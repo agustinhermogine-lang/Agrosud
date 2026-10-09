@@ -10,6 +10,7 @@ Terminal local para seguimiento de futuros agrícolas, contratos físicos, fijac
 - La terminal muestra todas las posiciones que devuelva la fuente CME web para cada Product ID configurado; ya no recorta la curva a 8 vencimientos.
 - Actualización automática cada 30 segundos por defecto.
 - CME web se usa como dato demorado/de referencia cuando el producto tiene Product ID configurado.
+- La actualización manual evita reutilizar respuestas cacheadas de CME; el fallback externo muestra solamente las cotizaciones realmente recibidas, sin extrapolar precios para otros vencimientos.
 - Si CME deja de responder temporalmente, la terminal reutiliza el último dato CME guardado localmente.
 
 ### Contratos & Fijaciones
@@ -139,9 +140,9 @@ El año de mercado inicial se configura con:
 
 ## 3.1 Archivo mensual de informes WASDE publicados
 
-La terminal consulta el archivo oficial USDA ESMIS y detecta automáticamente el último informe mensual publicado. Descarga y conserva en `data/usda/` el PDF oficial y su archivo de texto acompañante, y guarda hasta 24 releases en `data/db.json`. La comprobación se ejecuta al iniciar el servidor, al consultar WASDE y cada 6 horas mientras la aplicación permanece abierta; si aparece un nuevo informe mensual, se archiva sin borrar los anteriores.
+La terminal consulta el archivo oficial USDA ESMIS y detecta automáticamente el último informe mensual publicado. Descarga y conserva en `data/usda/` el PDF oficial y su archivo de texto acompañante, y guarda hasta 24 releases en `data/db.json`. La comprobación se ejecuta al iniciar el servidor, al consultar WASDE y cada 15 minutos mientras la aplicación permanece abierta; si aparece un nuevo informe mensual, se archiva sin borrar los anteriores.
 
-La pestaña `WASDE + gráficos` muestra los tres enlaces directos a los PDFs oficiales archivados. Las tablas comparativas por país se alimentan de las tablas del texto acompañante de esos PDFs y muestran una columna `Variación mensual` calculada como último informe menos el anterior. Si el texto oficial no contiene una tabla compatible, se intenta USDA FAS PSD y, como último recurso, se mantiene el fallback local claramente identificado.
+La pestaña `WASDE + gráficos` muestra los tres enlaces directos a los PDFs oficiales archivados. Las tablas comparativas por país priorizan las tablas del texto del último WASDE publicado, incluso si USDA FAS PSD también responde con un snapshot anterior. PSD queda como fallback si no hay un texto WASDE compatible; como último recurso, se mantiene el fallback local claramente identificado. Las tablas muestran una columna `Variación mensual` calculada como último informe menos el anterior.
 
 ---
 

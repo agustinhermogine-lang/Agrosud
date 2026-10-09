@@ -155,6 +155,14 @@ function isValidContractMonth(product,ticker){
 }
 function positionFromExpiration(expirationMonth, symbol, fallback=""){
   const s = String(expirationMonth || "").toUpperCase();
+  const dateMatch = s.match(/\b(20\d{2})[-/](\d{1,2})(?:[-/]\d{1,2})?\b/);
+  if(dateMatch){
+    const monthCode = Object.keys(MONTHS).find(code=>MONTHS[code].n===Number(dateMatch[2]));
+    if(monthCode && (CONTRACT_MONTHS[symbol] || []).includes(monthCode)){
+      return `${symbol}${monthCode}${dateMatch[1].slice(-2)}`;
+    }
+    return fallback;
+  }
   const monthName = Object.keys(MONTH_BY_NAME).find(m=>s.includes(m));
   const yearMatch = s.match(/20(\d{2})|\b(\d{2})\b/);
   if(monthName && yearMatch){
@@ -321,8 +329,8 @@ async function requestWithRetry(url, options={}, attempts=2){
 }
 async function fetchCmeProduct(symbol, cfg){
   if(!cfg.cmeProductId) return null;
-  const url=`https://www.cmegroup.com/CmeHttp/mvc/Quotes/Future/${cfg.cmeProductId}/G`;
-  const headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36","Accept":"application/json,text/plain,*/*","Referer":"https://www.cmegroup.com/"};
+  const url=`https://www.cmegroup.com/CmeHttp/mvc/Quotes/Future/${cfg.cmeProductId}/G?_=${Date.now()}`;
+  const headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36","Accept":"application/json,text/plain,*/*","Referer":"https://www.cmegroup.com/","Cache-Control":"no-cache","Pragma":"no-cache"};
   let quotes=[];
   try{
     const r=await requestWithRetry(url,{headers});
@@ -363,53 +371,6 @@ function nextMarketTickerForProduct(product){
   const year = (MONTHS[nextMonth]?.n ?? 0) < currentMonthIndex ? currentYear + 1 : currentYear;
   return `${product}${nextMonth}${String(year).slice(-2)}`;
 }
-function buildContractCurveForProduct(symbol, liveQuote, cfg){
-  const seq = CONTRACT_MONTHS[symbol] || [];
-  if(!seq.length || !liveQuote) return [];
-  const base = Number(liveQuote.last ?? liveQuote.settle ?? 0);
-  const now = new Date();
-  const currentYear = now.getUTCFullYear();
-  const currentMonth = now.getUTCMonth() + 1;
-  const entries = [];
-  const seen = new Set();
-
-  for(let year = currentYear; year <= currentYear + 2; year++){
-    for(const code of seq){
-      const monthNum = MONTHS[code]?.n ?? 0;
-      if(year === currentYear && monthNum < currentMonth) continue;
-      const ticker = `${symbol}${code}${String(year).slice(-2)}`;
-      if(seen.has(ticker)) continue;
-      seen.add(ticker);
-
-      const monthOffset = ((year - currentYear) * 12) + (monthNum - currentMonth);
-      const delta = Math.max(0, monthOffset) * 0.9 + (seq.indexOf(code) * 0.35);
-      const last = Number((base + delta).toFixed(2));
-      const change = Number((Number(liveQuote.change ?? 0) + (seq.indexOf(code) * 0.12)).toFixed(2));
-      const changePercent = Number(((Number(liveQuote.changePercent ?? 0) + (seq.indexOf(code) * 0.08)) || 0).toFixed(2));
-
-      entries.push({
-        position: ticker,
-        monthCode: code,
-        monthName: MONTHS[code]?.es || code,
-        year,
-        expirationMonth: "",
-        last,
-        change,
-        changePercent,
-        high: Number((last + 1.8).toFixed(2)),
-        low: Number((last - 1.8).toFixed(2)),
-        settle: last,
-        volume: null,
-        updatedAt: liveQuote.updatedAt || new Date().toISOString(),
-        source: "API externa configurada",
-        state: "DEMORADO",
-        usdMt: Number((last * (cfg?.factor || 1)).toFixed(4))
-      });
-    }
-  }
-
-  return entries;
-}
 function yahooChartToQuote(symbol, result, productSymbol){
   if(!result) return null;
   const meta = result.meta || {};
@@ -421,10 +382,11 @@ function yahooChartToQuote(symbol, result, productSymbol){
   const last = close.length ? close[close.length - 1] : meta.regularMarketPrice;
   const previous = meta.chartPreviousClose ?? (close.length > 1 ? close[close.length - 2] : null);
   const lastTs = timestamps.length ? timestamps[timestamps.length - 1] : meta.regularMarketTime;
+  const expirationMonth = meta.expirationDate ? new Date(meta.expirationDate * 1000).toISOString().slice(0, 10) : "";
   return {
     symbol: meta.symbol || productSymbol || symbol,
-    position: nextMarketTickerForProduct(symbol),
-    expirationMonth: meta.expirationDate ? new Date(meta.expirationDate * 1000).toISOString().slice(0, 10) : "",
+    position: positionFromExpiration(expirationMonth, symbol, nextMarketTickerForProduct(symbol)),
+    expirationMonth,
     last: last != null ? Number(last) : null,
     change: last != null && previous != null ? Number(last) - Number(previous) : null,
     high: high.length ? Number(high[high.length - 1]) : null,
@@ -454,11 +416,7 @@ async function fetchConfiguredMarketProduct(symbol,cfg){
     if(entry && entry.meta && entry.indicators) return yahooChartToQuote(symbol, entry, cfg.marketSymbol || symbol);
     return entry;
   }).filter(Boolean);
-  let positions = validQuotes(symbol, normalized, "API externa configurada", "DEMORADO");
-  if(normalized.length && normalized[0]?.last != null){
-    const curve = buildContractCurveForProduct(symbol, normalized[0], cfg);
-    if(curve.length > 1) positions = curve;
-  }
+  const positions = validQuotes(symbol, normalized, "API externa configurada", "DEMORADO");
   if(!positions.length) throw new Error("La API externa no devolvió posiciones válidas");
   return positions;
 }
@@ -477,7 +435,7 @@ async function marketData(force=false){
       catch(e){error=[error,`CME: ${e.message}`].filter(Boolean).join(" | ");}
     }
 
-    if(!positions && (process.env.MARKET_API_URL || !cfg.cmeProductId)){
+    if(!positions){
       try{positions=await fetchConfiguredMarketProduct(symbol,cfg);sourceMode="API externa configurada";state="DEMORADO";lastSuccessfulAt=new Date().toISOString();}
       catch(e){error=[error,`API externa: ${e.message}`].filter(Boolean).join(" | ");}
     }
@@ -822,7 +780,7 @@ function wasdeFileLinks(html){
 }
 async function syncWasdePublication(force=false){
   const now=Date.now();
-  if(!force && wasdeReportCache.report && now-wasdeReportCache.checkedAt<6*60*60*1000) return wasdeReportCache.report;
+  if(!force && wasdeReportCache.report && now-wasdeReportCache.checkedAt<15*60*1000) return wasdeReportCache.report;
   const pages=await Promise.all([USDA_WASDE_INDEX,`${USDA_WASDE_INDEX}?page=1`].map(url=>axios.get(url,{timeout:20000,headers:{"User-Agent":"AGROSUD Flat Price Terminal Pro"}})));
   const links=pages.flatMap(response=>wasdeFileLinks(response.data)).filter(x=>x.release).filter((link,index,all)=>all.findIndex(other=>other.href===link.href)===index);
   if(!links.length) throw new Error("USDA ESMIS no publicó un WASDE descargable");
@@ -945,17 +903,24 @@ function buildLocalUsdaSnapshot(symbol, marketYear){
 }
 app.get("/api/wasde/:symbol",async(req,res)=>{
   const symbol=String(req.params.symbol).toUpperCase(); if(!["ZS","ZM","ZL","ZC","ZW"].includes(symbol)) return res.status(400).json({status:"error",message:"Producto WASDE/PSD no habilitado"});
-  const marketYear=Number(req.query.marketYear||process.env.USDA_MARKET_YEAR||2026),db=readDb(); let current=null,source="history";
+  const marketYear=Number(req.query.marketYear||process.env.USDA_MARKET_YEAR||2026); let db=readDb(),current=null,source="history";
   const key=`${symbol}-${marketYear}`;
   let publishedReport=null;
   try{ publishedReport=await syncWasdePublication(req.query.force==="1"); }catch(e){ publishedReport=db.wasdeReports.at(-1)||null; }
-  if(process.env.USDA_API_KEY){
+  db=readDb();
+  const publishedSnapshots=(db.wasdeReports||[])
+    .map(report=>parsePublishedWasdeSnapshot(symbol,report))
+    .filter(Boolean)
+    .sort((a,b)=>a.release.localeCompare(b.release))
+    .slice(-3);
+  if(publishedSnapshots.length){
+    current=publishedSnapshots.at(-1);
+    db.wasdeHistory[key]=publishedSnapshots;
+    source="USDA WASDE PDF/Texto oficial";
+    writeDb(db);
+  } else if(process.env.USDA_API_KEY){
     try{ current=await fetchPsdSnapshot(symbol,marketYear); db.wasdeHistory[key]||=[]; if(!db.wasdeHistory[key].some(x=>x.release===current.release)){db.wasdeHistory[key].push(current);db.wasdeHistory[key]=db.wasdeHistory[key].slice(-3);writeDb(db);} source="USDA FAS PSD API"; }
     catch(e){ source=`USDA sin conexión: ${e.message}`; }
-  }
-  if(!current){
-    const reportDb=readDb(), parsed=(reportDb.wasdeReports||[]).slice(-3).map(r=>parsePublishedWasdeSnapshot(symbol,r)).filter(Boolean);
-    if(parsed.length){ db.wasdeHistory[key]=parsed.slice(-3); current=parsed.at(-1); source="USDA WASDE PDF/Texto oficial"; writeDb(db); }
   }
   if(!current){
     current = buildLocalUsdaSnapshot(symbol, marketYear);
@@ -972,12 +937,12 @@ app.get("/api/wasde/:symbol",async(req,res)=>{
   res.json({status:"success",symbol,marketYear,source,configured:!!process.env.USDA_API_KEY,lastUpdatedAt:history.at(-1)?.fetchedAt||null,current:current||history.at(-1)||null,history,annualComparison:{release:yearAgoRelease,snapshot:annualSnapshot},publishedReport,wasdeReports:db.wasdeReports.slice(-12)});
 });
 
-app.get("/api/health",(req,res)=>{ const f=loadFnd(); res.json({status:"success",service:"AGROSUD Flat Price Terminal Pro",version:"3.2.0",time:new Date().toISOString(),usdaConfigured:!!process.env.USDA_API_KEY,dataMineConfigured:!!(process.env.CME_DATAMINE_API_ID&&process.env.CME_DATAMINE_API_PASSWORD),externalMarketConfigured:!!process.env.MARKET_API_URL,fndLoaded:f.entries.length>0,fndPositions:f.entries.length,fndHolidays:f.holidays.length,marketRefreshMs:Number(process.env.MARKET_REFRESH_MS||30000),marketMode:"CME web como prioridad → API externa como fallback → último dato real → manual",settlementMode:"CME settlements web → CME DataMine → manual guardado"}); });
+app.get("/api/health",(req,res)=>{ const f=loadFnd(); res.json({status:"success",service:"AGROSUD Flat Price Terminal Pro",version:"3.2.0",time:new Date().toISOString(),usdaConfigured:!!process.env.USDA_API_KEY,dataMineConfigured:!!(process.env.CME_DATAMINE_API_ID&&process.env.CME_DATAMINE_API_PASSWORD),externalMarketConfigured:!!(process.env.MARKET_API_URL||DEFAULT_LIVE_MARKET_API),fndLoaded:f.entries.length>0,fndPositions:f.entries.length,fndHolidays:f.holidays.length,marketRefreshMs:Number(process.env.MARKET_REFRESH_MS||30000),marketMode:"CME web como prioridad → API externa como fallback → último dato real → manual",settlementMode:"CME settlements web → CME DataMine → manual guardado"}); });
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 
 ensureDb();
 syncWasdePublication().catch(e=>console.warn(`USDA WASDE PDF: ${e.message}`));
-setInterval(()=>syncWasdePublication(true).catch(e=>console.warn(`USDA WASDE PDF: ${e.message}`)),6*60*60*1000);
+setInterval(()=>syncWasdePublication(true).catch(e=>console.warn(`USDA WASDE PDF: ${e.message}`)),15*60*1000);
 app.listen(PORT,HOST,()=>{
   const f=loadFnd();
   console.log("============================================================");
