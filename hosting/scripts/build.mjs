@@ -1,0 +1,11 @@
+import { build } from 'esbuild';
+import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd();
+const adapter=path.join(root,'worker');
+const aliases={fs:'fs.js',express:'express.js',axios:'axios.js',dotenv:'noop.js',multer:'noop.js',cors:'noop.js'};
+fs.mkdirSync('dist/server',{recursive:true});fs.mkdirSync('dist/.openai',{recursive:true});
+await build({entryPoints:['worker/index.js'],outfile:'dist/server/index.js',bundle:true,platform:'node',mainFields:['module','main'],loader:{'.html':'text'},format:'esm',target:'es2022',minify:false,external:['node:*'],plugins:[{name:'server-adapters',setup(b){b.onResolve({filter:/^(fs|express|axios|dotenv|multer|cors)$/},a=>({path:path.join(adapter,aliases[a.path])}));}}]});
+fs.copyFileSync('.openai/hosting.json','dist/.openai/hosting.json');
+fs.cpSync('drizzle','dist/drizzle',{recursive:true});
+console.log('Build completo');

@@ -7,11 +7,9 @@ Terminal local para seguimiento de futuros agrícolas, contratos físicos, fijac
 ### Mercado por posiciones
 - Maíz (ZC), Poroto de soja (ZS), Trigo Chicago SRW (ZW), Harina de soja (ZM), Aceite de soja (ZL), Avena (ZO), más referencias manuales de Sorgo y Cebada.
 - Mini-tablas por producto con Posición, Último, Variación diaria, Máximo, Mínimo, Settle y USD/MT.
-- La terminal muestra todas las posiciones que devuelva la fuente CME web para cada Product ID configurado; ya no recorta la curva a 8 vencimientos.
-- Actualización automática cada 30 segundos por defecto.
-- CME web se usa como dato demorado/de referencia cuando el producto tiene Product ID configurado.
-- La actualización manual evita reutilizar respuestas cacheadas de CME; el fallback externo muestra solamente las cotizaciones realmente recibidas, sin extrapolar precios para otros vencimientos.
-- Si CME deja de responder temporalmente, la terminal reutiliza el último dato CME guardado localmente.
+- Yahoo Finance consulta contratos individuales y muestra únicamente vencimientos con cotización real; no extrapola precios para completar la curva.
+- Actualización automática cada 15 segundos por defecto.
+- Si el proveedor limita o interrumpe las consultas, la terminal conserva el último dato conocido con su estado identificado y reintenta respetando la pausa indicada.
 
 ### Contratos & Fijaciones
 - Contrato físico cargado en MT.

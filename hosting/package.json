@@ -1,0 +1,13 @@
+{
+  "name": "agrosud-publico",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/validate-artifact.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {"xlsx":"^0.18.5","csv-parse":"^5.6.0","drizzle-orm":"^0.44.0"},
+  "devDependencies": {"esbuild":"^0.25.0","drizzle-kit":"^0.31.0"}
+}
